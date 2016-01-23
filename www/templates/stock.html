@@ -1,0 +1,102 @@
+<ion-view view-title="{{ticker}}">
+  <div class="bar bar-subheader bar-light">
+    <div class="button-bar">
+      <a class="button button-clear"><h3>{{stockPriceData.price | number:3}}</h3></a>
+      <a class="button button-clear">{{stockPriceData.change | number:3}}</a>
+      <a class="button button-clear">{{stockPriceData.chg_percent | number:3}}%</a>
+    </div>
+  </div>
+  <ion-content class = "has-subheader">
+    <div class="button-bar">
+      <a ng-click="setChartView(1)" ng-class = 'isChartViewSelected(1)' class="button">Day</a>
+      <a ng-click="setChartView(2)" ng-class = 'isChartViewSelected(2)' class="button">Week</a>
+      <a ng-click="setChartView(3)" ng-class = 'isChartViewSelected(3)' class="button">Month</a>
+      <a ng-click="setChartView(4)" ng-class = 'isChartViewSelected(4)' class="button">3M</a>
+      <a ng-click="setChartView(5)" ng-class = 'isChartViewSelected(5)' class="button">Year</a>
+    </div>
+    <img ng-if = "chartView == 1" ng-src="http://chart.finance.yahoo.com/z?s={{ticker}}&t=1d&q=l&l=on&z=m&a=vm" style = "width:100%">
+    <img ng-if = "chartView == 2" ng-src="http://chart.finance.yahoo.com/z?s={{ticker}}&t=5d&q=l&l=on&z=m&a=vm" style = "width:100%">
+    <img ng-if = "chartView == 3" ng-src="http://chart.finance.yahoo.com/z?s={{ticker}}&t=1m&q=l&l=on&z=m&a=vm" style = "width:100%">
+    <div ng-if = "chartView == 4" nv-chart = "chartOptions" style="height:70vh"></div>
+    <img ng-if = "chartView == 5" ng-src="http://chart.finance.yahoo.com/z?s={{ticker}}&t=1y&q=l&l=on&z=m&a=vm" style = "width:100%">
+    <div class="card">
+      <div class="item item-divider"> Market data </div>
+      <div class="row row-center">
+        <div class="col">{{stockDetailsData.Name}} <br>
+          <cite> Company </cite>
+        </div>
+      </div>
+      <div class="row row-center">
+        <div class="col">{{stockDetailsData.Ask | number:3}} <br>
+          <cite> Ask </cite>
+        </div>
+        <div class="col">{{stockDetailsData.Bid | number:3}} <br>
+          <cite> Bid </cite>
+       </div>
+      </div>
+      <div class="row row-center">
+        <div class="col">{{stockDetailsData.Open | number:3}} <br>
+          <cite> Open </cite>
+        </div>
+        <div class="col">{{stockDetailsData.PreviousClose | number:3}} <br>
+          <cite> Prev. Close </cite>
+        </div>
+      </div>
+      <div class="row row-center">
+        <div class="col">{{stockPriceData.day_high | number:3}} <br>
+          <cite>Day's High</cite>
+        </div>
+        <div class="col">{{stockPriceData.year_high | number:2}} <br>
+          <cite> 52w High </cite>
+        </div>
+      </div>
+      <div class="row row-center">
+        <div class="col">{{stockPriceData.day_low | number:3}} <br>
+          <cite> Day's Low </cite>
+        </div>
+        <div class="col">{{stockPriceData.year_low | number:2}} <br>
+          <cite> 52w Low </cite>
+        </div>
+      </div>
+      <div class="row row-center">
+        <div class="col">{{stockPriceData.volume}} <br>
+          <cite> Volume </cite>
+        </div>
+        <div class="col">{{stockDetailsData.MarketCapitalization}} <br>
+          <cite> Market Cap </cite>
+        </div>
+      </div>
+      <div class="row row-center">
+        <div class="col">{{stockDetailsData.AverageDailyVolume}} <br>
+          <cite>Avg. Volume </cite>
+        </div>
+        <div class="col">{{stockDetailsData.DividendYield | number:2}} <br>
+          <cite> Yield </cite>
+        </div>
+      </div>
+      <div class="row row-center">
+        <div class="col">{{stockDetailsData.EarningsShare | number:2}} <br>
+          <cite> EPS </cite>
+        </div>
+        <div class="col">{{stockDetailsData.PERatio | number:2}} <br>
+          <cite> P/E </cite>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="item item-divider">Notes</div>
+      <a class="item">
+        <h2>Note Title</h2>
+      </a>
+    </div>
+
+    <div class="card">
+      <div class="item item-divider">News</div>
+      <a class="item item-icon-right">
+        <h2>News Story Title</h2>
+        <i class="icon ion-ios-arrow-right"></i>
+      </a>
+    </div>
+  </ion-content>
+</ion-view>

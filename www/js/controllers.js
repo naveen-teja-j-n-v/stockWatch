@@ -1,4 +1,4 @@
-angular.module('starter.controllers', [])
+angular.module('marketInsider.controllers', [])
 
 .controller('AppCtrl', function($scope, $ionicModal, $timeout) {
 
@@ -41,16 +41,123 @@ angular.module('starter.controllers', [])
   };
 })
 
-.controller('PlaylistsCtrl', function($scope) {
-  $scope.playlists = [
-    { title: 'Reggae', id: 1 },
-    { title: 'Chill', id: 2 },
-    { title: 'Dubstep', id: 3 },
-    { title: 'Indie', id: 4 },
-    { title: 'Rap', id: 5 },
-    { title: 'Cowbell', id: 6 }
+.controller('MyStocksCtrl', ['$scope',
+  function($scope) {
+  $scope.myStocks = [
+    { ticker: 'FXCM'},
+    { ticker: 'GASX'},
+    { ticker: 'ADPT'},
+    { ticker: 'FIT'},
+    { ticker: 'HDP'}
   ];
-})
+}])
 
-.controller('PlaylistCtrl', function($scope, $stateParams) {
-});
+.controller('StockCtrl', ['$scope', '$stateParams', 'stockDataService', 'dateService', '$window', 'chartDataService',
+  function($scope, $stateParams, stockDataService, dateService, $window, chartDataService) {
+    /* All Variable Declarations */
+    $scope.ticker = $stateParams.stockTicker;
+    $scope.chartView = 4;
+    $scope.oneYearAgoDate = dateService.oneYearAgoDate();
+    $scope.currentDate = dateService.currentDate();
+    $scope.historicalData = [];
+    /* All Events */
+    $scope.$on("$ionicView.afterEnter", function(){
+      getPriceData();
+      getDetails();
+      getHistoricalData();
+    });
+
+    /* Scope Functions */
+    $scope.setChartView = function(sel) {
+      $scope.chartView = sel;
+    };
+
+    $scope.isChartViewSelected = function(sel){
+      return $scope.chartView == sel ? 'active' : '';
+    };
+
+    /* All Private Functions */
+    function getPriceData() {
+      var promise = stockDataService.getPriceData($scope.ticker);
+      promise.then(function(data){
+        $scope.stockPriceData = data;
+      });
+    }
+
+    function getDetails() {
+      var promise = stockDataService.getDetails($scope.ticker);
+      promise.then(function(data){
+        $scope.stockDetailsData = data;
+      });
+    }
+
+    function getHistoricalData() {
+      var promise = chartDataService.getHistoricalData($scope.ticker, $scope.oneYearAgoDate , $scope.currentDate);
+      promise.then(function(data){
+        $scope.historicalData = JSON.parse(data)
+          .map(function(series) {
+            series.values = series.values.map(function(d) { return {x: d[0], y: d[1] }; });
+            return series;
+          });
+      });
+    }
+
+  	var xTickFormat = function(d) {
+  		var dx = $scope.myData[0].values[d] && $scope.myData[0].values[d].x || 0;
+  		if (dx > 0) {
+        return d3.time.format("%b %d")(new Date(dx));
+  		}
+  		return null;
+  	};
+
+    var x2TickFormat = function(d) {
+      var dx = $scope.myData[0].values[d] && $scope.myData[0].values[d].x || 0;
+      return d3.time.format('%b %Y')(new Date(dx));
+    };
+
+    var y1TickFormat = function(d) {
+      return d3.format(',f')(d);
+    };
+
+    var y2TickFormat = function(d) {
+      return d3.format('s')(d);
+    };
+
+    var y3TickFormat = function(d) {
+      return d3.format(',.2s')(d);
+    };
+
+    var y4TickFormat = function(d) {
+      return d3.format(',.2s')(d);
+    };
+
+    var xValueFunction = function(d, i) {
+      return i;
+    };
+
+    var marginBottom = ($window.innerWidth / 100) * 10;
+
+  	$scope.chartOptions = {
+      chartType: 'linePlusBarWithFocusChart',
+      data: 'historicalData',
+      margin: {top: 15, right: 40, bottom: marginBottom, left: 70},
+      interpolate: "cardinal",
+      useInteractiveGuideline: false,
+      yShowMaxMin: false,
+      tooltips: false,
+      showLegend: false,
+      useVoronoi: false,
+      xShowMaxMin: false,
+      xValue: xValueFunction,
+      xAxisTickFormat: xTickFormat,
+      x2AxisTickFormat: x2TickFormat,
+      y1AxisTickFormat: y1TickFormat,
+      y2AxisTickFormat: y2TickFormat,
+      y3AxisTickFormat: y3TickFormat,
+      y4AxisTickFormat: y4TickFormat,
+      transitionDuration: 500
+  	};
+  }
+])
+
+;
