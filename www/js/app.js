@@ -1,7 +1,9 @@
 angular.module('marketInsider', [
    'ionic',
+   'angular-cache',
    'nvd3',
    'nvChart',
+   'cb.x2js',
    'marketInsider.controllers',
    'marketInsider.services',
    'marketInsider.filters',
@@ -24,10 +26,10 @@ angular.module('marketInsider', [
   });
 })
 
-.config(function($stateProvider, $urlRouterProvider) {
-  $stateProvider
 // when abstract is set to true it tells that this page cannot be
 // navigated directly.
+.config(function($stateProvider, $urlRouterProvider) {
+  $stateProvider
   .state('app', {
     url: '/app',
     abstract: true,

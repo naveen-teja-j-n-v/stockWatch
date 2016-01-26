@@ -1,100 +1,115 @@
-<ion-view view-title="{{ticker}}">
-  <div class="bar bar-subheader bar-light">
-    <div class="button-bar">
-      <a class="button button-clear"><h3>{{stockPriceData.price | number:3}}</h3></a>
-      <a class="button button-clear">{{stockPriceData.change | number:3}}</a>
-      <a class="button button-clear">{{stockPriceData.chg_percent | number:3}}%</a>
+<ion-view view-title="{{ticker}}" drag-content="false">
+  <ion-nav-bar id="stock-navbar" class = "bar-dark ng-style:reactiveColor">
+    <ion-nav-back-button></ion-nav-back-button>
+  </ion-nav-bar>
+  <div class="bar bar-subheader bar-light" id = "stock-subheader-bar">
+    <div class="buttons" side = "left">
+      <div class="button button-clear display-flex">
+        <h6 id = "stock-name">
+           {{stockDetailsData.Name}}
+        </h6>
+      </div>
     </div>
+    <h2 class="title button-left button-right" id = "stock-price">
+      {{stockPriceData.price | shrinkNumber:2 }}
+    </h2>
+    <div class="buttons" side = "right">
+      <div class="button button-clear display-flex">
+        <h6 id = "stock-change_pct" ng-class = "stockPriceData.chg_percent < 0 ? 'assertive' : 'balanced'">
+          <span ng-if = "stockPriceData.change > 0">+</span>
+          {{ stockPriceData.change | shrinkNumber:2 }}
+          <br>
+          (
+          <span ng-if = "stockPriceData.chg_percent > 0">+</span>
+          {{ stockPriceData.chg_percent | number:3 }}%
+          )
+        </h6>
+      </div>
+    </div>
+
   </div>
-  <ion-content class = "has-subheader">
-    <div class="button-bar">
+  <ion-content class = "has-subheader" scrollbar-y="false">
+    <div class="button-bar" id = "short-button-bar">
       <a ng-click="setChartView(1)" ng-class = 'isChartViewSelected(1)' class="button">Day</a>
       <a ng-click="setChartView(2)" ng-class = 'isChartViewSelected(2)' class="button">Week</a>
-      <a ng-click="setChartView(3)" ng-class = 'isChartViewSelected(3)' class="button">Month</a>
+      <a ng-click="setChartView(3)" ng-class = 'isChartViewSelected(3)' class="button">1M</a>
       <a ng-click="setChartView(4)" ng-class = 'isChartViewSelected(4)' class="button">3M</a>
       <a ng-click="setChartView(5)" ng-class = 'isChartViewSelected(5)' class="button">Year</a>
     </div>
     <img ng-if = "chartView == 1" ng-src="http://chart.finance.yahoo.com/z?s={{ticker}}&t=1d&q=l&l=on&z=m&a=vm" style = "width:100%">
     <img ng-if = "chartView == 2" ng-src="http://chart.finance.yahoo.com/z?s={{ticker}}&t=5d&q=l&l=on&z=m&a=vm" style = "width:100%">
     <img ng-if = "chartView == 3" ng-src="http://chart.finance.yahoo.com/z?s={{ticker}}&t=1m&q=l&l=on&z=m&a=vm" style = "width:100%">
-    <div ng-if = "chartView == 4" nv-chart = "chartOptions" style="height:70vh"></div>
+    <div ng-if = "chartView == 4" nv-chart = "chartOptions" id = "interactiveChart"></div>
     <img ng-if = "chartView == 5" ng-src="http://chart.finance.yahoo.com/z?s={{ticker}}&t=1y&q=l&l=on&z=m&a=vm" style = "width:100%">
-    <div class="card">
-      <div class="item item-divider"> Market data </div>
-      <div class="row row-center">
-        <div class="col">{{stockDetailsData.Name}} <br>
-          <cite> Company </cite>
-        </div>
+    <div class="card" id = "market-data-card">
+      <div class="item item-divider"> Market data
+        <span class="last-trade">
+          Last trade: {{ stockPriceData.utctime | date: 'medium'}}
+        </span>
       </div>
       <div class="row row-center">
-        <div class="col">{{stockDetailsData.Ask | number:3}} <br>
-          <cite> Ask </cite>
-        </div>
-        <div class="col">{{stockDetailsData.Bid | number:3}} <br>
-          <cite> Bid </cite>
-       </div>
+        <div class="col"> Ask </div>
+        <div class="col col-20">{{stockDetailsData.Ask | shrinkNumber:2}}</div>
+        <div class="col"> Bid </div>
+        <div class="col col-20">{{stockDetailsData.Bid | shrinkNumber:2}} </div>
       </div>
       <div class="row row-center">
-        <div class="col">{{stockDetailsData.Open | number:3}} <br>
-          <cite> Open </cite>
-        </div>
-        <div class="col">{{stockDetailsData.PreviousClose | number:3}} <br>
-          <cite> Prev. Close </cite>
-        </div>
+        <div class="col"> Open </div>
+        <div class="col col-20">{{stockDetailsData.Open | shrinkNumber:2}}</div>
+        <div class="col"> Prev.Close </div>
+        <div class="col col-20">{{stockDetailsData.PreviousClose | shrinkNumber:2}}</div>
       </div>
       <div class="row row-center">
-        <div class="col">{{stockPriceData.day_high | number:3}} <br>
-          <cite>Day's High</cite>
-        </div>
-        <div class="col">{{stockPriceData.year_high | number:2}} <br>
-          <cite> 52w High </cite>
-        </div>
+        <div class="col"> Day's High </div>
+        <div class="col col-20">{{stockPriceData.day_high | shrinkNumber:2}}</div>
+        <div class="col"> 52w High </div>
+        <div class="col col-20">{{stockPriceData.year_high | shrinkNumber:2}}</div>
       </div>
       <div class="row row-center">
-        <div class="col">{{stockPriceData.day_low | number:3}} <br>
-          <cite> Day's Low </cite>
-        </div>
-        <div class="col">{{stockPriceData.year_low | number:2}} <br>
-          <cite> 52w Low </cite>
-        </div>
+        <div class="col"> Day's Low </div>
+        <div class="col col-20">{{stockPriceData.day_low | shrinkNumber:2}}</div>
+        <div class="col"> 52w Low </div>
+        <div class="col col-20">{{stockPriceData.year_low | shrinkNumber:2}}</div>
       </div>
       <div class="row row-center">
-        <div class="col">{{stockPriceData.volume}} <br>
-          <cite> Volume </cite>
-        </div>
-        <div class="col">{{stockDetailsData.MarketCapitalization}} <br>
-          <cite> Market Cap </cite>
-        </div>
+        <div class="col"> Volume </div>
+        <div class="col col-20">{{stockPriceData.volume | shrinkNumber:2}}</div>
+        <div class="col"> Market Cap </div>
+        <div class="col col-20">{{stockDetailsData.MarketCapitalization}}</div>
       </div>
       <div class="row row-center">
-        <div class="col">{{stockDetailsData.AverageDailyVolume}} <br>
-          <cite>Avg. Volume </cite>
-        </div>
-        <div class="col">{{stockDetailsData.DividendYield | number:2}} <br>
-          <cite> Yield </cite>
-        </div>
+        <div class="col"> Avg. Vol </div>
+        <div class="col col-20">{{stockDetailsData.AverageDailyVolume | shrinkNumber:2}}</div>
+        <div class="col"> Yield </div>
+        <div class="col col-20">{{stockDetailsData.DividendYield | shrinkNumber:2}}</div>
       </div>
       <div class="row row-center">
-        <div class="col">{{stockDetailsData.EarningsShare | number:2}} <br>
-          <cite> EPS </cite>
-        </div>
-        <div class="col">{{stockDetailsData.PERatio | number:2}} <br>
-          <cite> P/E </cite>
-        </div>
+        <div class="col"> EPS </div>
+        <div class="col col-20">{{stockDetailsData.EarningsShare | shrinkNumber:2}}</div>
+        <div class="col"> P/E </div>
+        <div class="col col-20">{{stockDetailsData.PERatio | shrinkNumber:2}}</div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="item item-divider">Notes</div>
-      <a class="item">
-        <h2>Note Title</h2>
+    <div class="card" id = "stock-notes">
+      <div class="item item-divider"> Notes
+        <span ng-click = "addNotes()" class = "add-stock-notes" ng-class = "stockPriceData.chg_percent < 0 ? 'assertive' : 'balanced'">
+         Add <i class = "ion-plus-round"></i>
+        </span>
+      </div>
+      <a class="item" ng-repeat = "note in stockNotes track by $index"
+        ng-click = "openNote($index, note.title, note.body)">
+        <h2>{{note.title}}</h2>
+        <h6>{{note.date | date: 'M/d/yy'}}</h6>
       </a>
     </div>
 
-    <div class="card">
+    <div class="card" id = "stock-news">
       <div class="item item-divider">News</div>
-      <a class="item item-icon-right">
-        <h2>News Story Title</h2>
+      <a class="item item-icon-right" ng-repeat = "item in newsData" ng-click = "openWindow(item.link)">
+        <h2>{{item.title}}</h2>
+        <h6>{{item.pubDate | characters:17:false:false}}</h6>
+        <p ng-if = "item.description.length > 0">{{item.description | characters:200:false:true}}</p>
         <i class="icon ion-ios-arrow-right"></i>
       </a>
     </div>

@@ -41,30 +41,26 @@ angular.module('marketInsider.controllers', [])
   };
 })
 
-.controller('MyStocksCtrl', ['$scope',
-  function($scope) {
-  $scope.myStocks = [
-    { ticker: 'FXCM'},
-    { ticker: 'GASX'},
-    { ticker: 'ADPT'},
-    { ticker: 'FIT'},
-    { ticker: 'HDP'}
-  ];
+.controller('MyStocksCtrl', ['$scope', 'myStocksArrayService',
+  function($scope, myStocksArrayService) {
+  $scope.myStocks = myStocksArrayService;
 }])
 
-.controller('StockCtrl', ['$scope', '$stateParams', 'stockDataService', 'dateService', '$window', 'chartDataService',
-  function($scope, $stateParams, stockDataService, dateService, $window, chartDataService) {
+.controller('StockCtrl', ['$scope', '$stateParams', 'stockDataService', 'dateService', '$window', 'chartDataService','$ionicPopup', 'notesService', 'newsService',
+  function($scope, $stateParams, stockDataService, dateService, $window, chartDataService, $ionicPopup, notesService, newsService) {
     /* All Variable Declarations */
     $scope.ticker = $stateParams.stockTicker;
     $scope.chartView = 4;
     $scope.oneYearAgoDate = dateService.oneYearAgoDate();
     $scope.currentDate = dateService.currentDate();
-    $scope.historicalData = [];
+    $scope.stockNotes = [];
     /* All Events */
     $scope.$on("$ionicView.afterEnter", function(){
       getPriceData();
       getDetails();
       getHistoricalData();
+      getNewsData();
+      $scope.stockNotes = notesService.getNotes($scope.ticker);
     });
 
     /* Scope Functions */
@@ -76,11 +72,93 @@ angular.module('marketInsider.controllers', [])
       return $scope.chartView == sel ? 'active' : '';
     };
 
+    $scope.addNotes = function() {
+      $scope.note = {
+        title: 'Note',
+        body: '',
+        date: $scope.currentDate,
+        ticker: $scope.ticker
+      };
+      var note = $ionicPopup.show({
+        template: '<input type="text" ng-model="note.title" id = "stock-note-title"> <textarea type="text" ng-model="note.body" id = "stock-note-body"></textarea>',
+        title: 'New Note $'+ $scope.ticker,
+        scope: $scope,
+        buttons: [
+          { text: '<i class = "ion-close-round"> Cancel </i>',
+            type: 'button-dark',
+            onTap: function(e){
+              return ;
+            }
+          },
+          {
+            text: '<i class = "ion-star"> Save </i>',
+            type: 'button-balanced',
+            onTap: function(e) {
+              notesService.addNotes($scope.ticker, $scope.note);
+            }
+          }
+        ]
+      });
+      note.then(function(res) {
+        $scope.stockNotes = notesService.getNotes($scope.ticker);
+      });
+    };
+
+    $scope.openNote = function(index, title, body) {
+      $scope.note = {
+        title: title,
+        body: body,
+        date: $scope.currentDate,
+        ticker: $scope.ticker
+      };
+      var note = $ionicPopup.show({
+        template: '<input type="text" ng-model="note.title" id = "stock-note-title"> <textarea type="text" ng-model="note.body" id = "stock-note-body"></textarea>',
+        title: $scope.note.title,
+        scope: $scope,
+        buttons: [
+          { text: '<i class = "ion-close-round"> Cancel </i>',
+            type: 'button-small button-dark',
+            onTap: function(e){
+              return ;
+            }
+          },
+          {
+            text: '<i class = "ion-trash-a"> Delete </i>',
+            type: 'button-assertive button-small',
+            onTap: function(e){
+              notesService.deleteNotes($scope.ticker, index);
+            }
+          },
+          {
+            text: '<i class = "ion-star"> Save </i>',
+            type: 'button-balanced button-small',
+            onTap: function(e) {
+              notesService.deleteNotes($scope.ticker, index);
+              notesService.addNotes($scope.ticker, $scope.note);
+            }
+          }
+        ]
+      });
+      note.then(function(res) {
+        $scope.stockNotes = notesService.getNotes($scope.ticker);
+      });
+    };
+
+    $scope.openWindow = function(link){
+      //TODO install and setup In-App Browser
+      console.log("ioenWindow -> ", link);
+    };
+
     /* All Private Functions */
     function getPriceData() {
       var promise = stockDataService.getPriceData($scope.ticker);
       promise.then(function(data){
         $scope.stockPriceData = data;
+        if(data.chg_percent >= 0 && data !== null){
+          $scope.reactiveColor = {'background-color': '#33cd5f'};
+        } else if (data.chg_percent < 0 && data !== null){
+          $scope.reactiveColor = {'background-color': '#ef473a'};
+        }
       });
     }
 
@@ -94,7 +172,7 @@ angular.module('marketInsider.controllers', [])
     function getHistoricalData() {
       var promise = chartDataService.getHistoricalData($scope.ticker, $scope.oneYearAgoDate , $scope.currentDate);
       promise.then(function(data){
-        $scope.historicalData = JSON.parse(data)
+        $scope.historicalData = data
           .map(function(series) {
             series.values = series.values.map(function(d) { return {x: d[0], y: d[1] }; });
             return series;
@@ -102,8 +180,16 @@ angular.module('marketInsider.controllers', [])
       });
     }
 
+    function getNewsData() {
+      $scope.newsData = [];
+      var promise = newsService.getNewsData($scope.ticker);
+      promise.then(function(data){
+        $scope.newsData = data;
+      });
+    }
+
   	var xTickFormat = function(d) {
-  		var dx = $scope.myData[0].values[d] && $scope.myData[0].values[d].x || 0;
+  		var dx = $scope.historicalData[0].values[d] && $scope.historicalData[0].values[d].x || 0;
   		if (dx > 0) {
         return d3.time.format("%b %d")(new Date(dx));
   		}
@@ -111,7 +197,7 @@ angular.module('marketInsider.controllers', [])
   	};
 
     var x2TickFormat = function(d) {
-      var dx = $scope.myData[0].values[d] && $scope.myData[0].values[d].x || 0;
+      var dx = $scope.historicalData[0].values[d] && $scope.historicalData[0].values[d].x || 0;
       return d3.time.format('%b %Y')(new Date(dx));
     };
 
@@ -140,7 +226,7 @@ angular.module('marketInsider.controllers', [])
   	$scope.chartOptions = {
       chartType: 'linePlusBarWithFocusChart',
       data: 'historicalData',
-      margin: {top: 15, right: 40, bottom: marginBottom, left: 70},
+      margin: {top: 15, right: 0, bottom: marginBottom, left: 0},
       interpolate: "cardinal",
       useInteractiveGuideline: false,
       yShowMaxMin: false,
@@ -155,7 +241,10 @@ angular.module('marketInsider.controllers', [])
       y2AxisTickFormat: y2TickFormat,
       y3AxisTickFormat: y3TickFormat,
       y4AxisTickFormat: y4TickFormat,
-      transitionDuration: 500
+      transitionDuration: 500,
+      y1AxisLabel: 'Price',
+      y3AxisLabel: 'Volume',
+      noData: 'Loading ...'
   	};
   }
 ])
